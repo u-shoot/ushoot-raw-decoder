@@ -1,0 +1,26 @@
+U-Shoot Raw Decoder sidecar
+Copyright (C) 2026 U-Shoot SAS (in formation)
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+version 2.1 as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
+
+The full text of the GNU Lesser General Public License version 2.1
+is available at:
+
+    https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+
+and is also reproduced in the file `THIRD_PARTY_LICENSES.md` at the
+root of the U-Shoot repository.
+
+This crate links the `rawler` library (https://github.com/dnglab/dnglab),
+also licensed under LGPL-2.1, whose source code is published on GitHub.
+The combined binary `ushoot-raw-decoder` is therefore an LGPL-2.1
+work. Recipients of the binary embedded in U-Shoot Desktop can
+rebuild it from the sources of this crate together with a modified
+copy of `rawler`, satisfying section 6 of the LGPL-2.1.

@@ -1,0 +1,54 @@
+# U-Shoot Raw Decoder — sidecar binary for the U-Shoot Desktop app.
+#
+# This crate is the ONLY part of U-Shoot that depends on `rawler`
+# (LGPL-2.1). It is compiled as a standalone executable embedded in
+# the Tauri bundle via `externalBin` and invoked by the main
+# `ushoot` binary over IPC (CLI args + temp files / stdout JSON).
+#
+# License: LGPL-2.1 (because of rawler). The full source of this
+# crate is published with the rest of U-Shoot, satisfying LGPL §6
+# by construction — recipients can rebuild this binary with a
+# modified rawler.
+#
+# See legal/lgpl-rawler-compliance.md for the full compliance
+# rationale.
+
+[package]
+name = "ushoot-raw-decoder"
+version = "0.6.0"
+edition = "2021"
+license = "LGPL-2.1-only"
+description = "RAW image decoder sidecar for U-Shoot Desktop (isolated LGPL boundary around rawler)"
+repository = "https://github.com/u-shoot/ushoot-raw-decoder"
+
+# Don't auto-discover bin/lib targets — we have exactly one binary
+# and zero library.
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+
+[[bin]]
+name = "ushoot-raw-decoder"
+path = "src/main.rs"
+
+[dependencies]
+# Support RAW complet incluant CR3 (Canon EOS R) via rawler (dnglab officiel).
+# Épinglé au commit exact distribué dans le binaire (= LGPL §6 : un destinataire
+# rebuild le MÊME sidecar avec un rawler éventuellement modifié). Identique au
+# commit verrouillé dans le Cargo.lock du workspace ; consommé NON modifié.
+rawler = { git = "https://github.com/dnglab/dnglab.git", package = "rawler", rev = "4b29d32171987efda098d7194cd5693579f96bc9" }
+
+# Color conversion + RGB8 buffer construction. Same crate the main
+# app uses, kept in sync via Cargo's resolver.
+image = { version = "0.25", features = ["png", "jpeg"], default-features = false }
+
+# CLI argument parsing.
+clap = { version = "4", features = ["derive"] }
+
+# JSON output for `dimensions` and `exif` subcommands.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling.
+anyhow = "1.0"
