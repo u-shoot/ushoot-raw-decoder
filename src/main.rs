@@ -267,6 +267,15 @@ struct ExifOut {
     /// via the McCamy formula (kept out of the sidecar to avoid
     /// growing it unnecessarily).
     wb_coeffs: [f32; 4],
+    /// Shooting EXIF from rawler's metadata pass. kamadak-exif (main
+    /// app) cannot parse ISO-BMFF containers (CR3): without these,
+    /// every Canon EOS R photo showed no ISO/speed/aperture at all.
+    /// All optional — absent fields stay null in the JSON.
+    iso: Option<u32>,
+    exposure_time: Option<f64>,
+    f_number: Option<f64>,
+    focal_length: Option<f64>,
+    date_time_original: Option<String>,
 }
 
 fn exif(input: &Path) -> Result<()> {
@@ -285,6 +294,24 @@ fn exif(input: &Path) -> Result<()> {
         rawler::Orientation::Unknown => 1,
     };
 
+    // Second pass: rawler's metadata decoder carries the shooting EXIF
+    // (ISO, exposure, aperture, focal, date) that the pixel decode above
+    // does not expose. Best effort: a failure leaves the fields null.
+    let meta = rawler::rawsource::RawSource::new(input)
+        .ok()
+        .and_then(|src| {
+            rawler::get_decoder(&src).ok().and_then(|d| {
+                d.raw_metadata(&src, &rawler::decoders::RawDecodeParams::default())
+                    .ok()
+            })
+        });
+    let exif = meta.as_ref().map(|m| &m.exif);
+    let rational = |r: &Option<rawler::formats::tiff::Rational>| -> Option<f64> {
+        r.as_ref().and_then(|v| {
+            if v.d == 0 { None } else { Some(v.n as f64 / v.d as f64) }
+        })
+    };
+
     let out = ExifOut {
         width: raw.width as u32,
         height: raw.height as u32,
@@ -292,6 +319,15 @@ fn exif(input: &Path) -> Result<()> {
         model: raw.clean_model.clone(),
         orientation,
         wb_coeffs: raw.wb_coeffs,
+        iso: exif.and_then(|e| {
+            e.iso_speed
+                .or(e.iso_speed_ratings.map(|v| v as u32))
+                .or(e.recommended_exposure_index)
+        }),
+        exposure_time: exif.and_then(|e| rational(&e.exposure_time)),
+        f_number: exif.and_then(|e| rational(&e.fnumber)),
+        focal_length: exif.and_then(|e| rational(&e.focal_length)),
+        date_time_original: exif.and_then(|e| e.date_time_original.clone()),
     };
     println!("{}", serde_json::to_string(&out)?);
     Ok(())

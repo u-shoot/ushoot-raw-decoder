@@ -1,0 +1,12 @@
+# CRT STATIQUE sur Windows : le sidecar doit se lancer sur un Windows VIERGE.
+# Lié dynamiquement, il exigeait VCRUNTIME140.dll (redistribuable Visual C++),
+# absent d'une machine fraîche — le sidecar ne démarrait même pas, aucun RAW
+# n'était décodé, sans une ligne de log (constaté au banc sur la VM du labo).
+# La liaison statique supprime la dépendance à la racine : rien à ajouter à
+# l'installateur, rien à exiger du poste.
+#
+# Ce fichier ne s'applique qu'aux invocations cargo DEPUIS ce répertoire —
+# c'est le cas du build local (scripts) ET de la CI (working-directory:
+# frontend/src-tauri/raw-decoder). Il ne touche pas le reste du workspace.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

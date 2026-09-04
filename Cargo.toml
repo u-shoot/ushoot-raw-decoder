@@ -16,6 +16,7 @@
 [package]
 name = "ushoot-raw-decoder"
 version = "0.6.0"
+publish = false   # crate interne (LGPL-2.1 via rawler, source livrée) : ignoré par cargo-deny (private.ignore)
 edition = "2021"
 license = "LGPL-2.1-only"
 description = "RAW image decoder sidecar for U-Shoot Desktop (isolated LGPL boundary around rawler)"
